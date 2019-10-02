@@ -1,27 +1,22 @@
-VERSION=0.0.1
+VERSION=0.0.2
+LDFLAGS=-ldflags "-X main.Version=${VERSION}"
+GO111MODULE=on
 
 all: check-memcached-uptime
 
 .PHONY: check-memcached-uptime
 
-gom:
-	go get -u github.com/mattn/gom
-
-bundle:
-	gom install
-
 check-memcached-uptime: check-memcached-uptime.go
-	gom build -o check-memcached-uptime
+	go build $(LDFLAGS) -o check-memcached-uptime
 
 linux: check-memcached-uptime.go
-	GOOS=linux GOARCH=amd64 gom build -o check-memcached-uptime
-
-fmt:
-	go fmt ./...
-
-dist:
-	git archive --format tgz HEAD -o check-memcached-uptime-$(VERSION).tar.gz --prefix check-memcached-uptime-$(VERSION)/
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o check-memcached-uptime
 
 clean:
-	rm -rf check-memcached-uptime check-memcached-uptime-*.tar.gz
+	rm -rf check-memcached-uptime
 
+tag:
+	git tag v${VERSION}
+	git push origin v${VERSION}
+	git push origin master
+	goreleaser --rm-dist

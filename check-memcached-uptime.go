@@ -1,22 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"os"
-	"time"
-	"bytes"
 	"regexp"
 	"strconv"
-	"io"
+	"time"
+
 	"github.com/jessevdk/go-flags"
 	"github.com/mackerelio/checkers"
 )
 
 type memcachedSetting struct {
-	Host string `short:"H" long:"host" default:"localhost" description:"Hostname"`
-	Port string `short:"p" long:"port" default:"11211" description:"Port"`
-	Timeout  float64 `short:"t" long:"timeout" default:"10" description:"Seconds before connection times out"`
+	Host    string  `short:"H" long:"host" default:"localhost" description:"Hostname"`
+	Port    string  `short:"p" long:"port" default:"11211" description:"Port"`
+	Timeout float64 `short:"t" long:"timeout" default:"10" description:"Seconds before connection times out"`
 }
 
 type uptimeOpts struct {
@@ -38,7 +39,6 @@ func main() {
 	ckr.Name = "memcached Uptime"
 	ckr.Exit()
 }
-
 
 func write(conn net.Conn, content []byte, timeout float64) error {
 	if timeout > 0 {
@@ -78,7 +78,7 @@ func retrieve_uptime(conn net.Conn, timeout float64) (int64, error) {
 
 	for _, b := range bytes.Split(buf, []byte("\n")) {
 		if match := regexp.MustCompile(`^STAT uptime (\d+)`).FindStringSubmatch(string(b)); match != nil {
-			i, err := strconv.ParseInt(match[1],0,64);
+			i, err := strconv.ParseInt(match[1], 0, 64)
 			if err != nil {
 				return 0, err
 			}
@@ -121,6 +121,5 @@ func checkUptime() *checkers.Checker {
 		return checkers.Warning(fmt.Sprintf("up %s < %s", uptime2str(Uptime), uptime2str(opts.Warn)))
 	}
 	return checkers.Ok(fmt.Sprintf("up %s", uptime2str(Uptime)))
-
 
 }
