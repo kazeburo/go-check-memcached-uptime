@@ -15,4 +15,4 @@ archives:
 release:
   github:
     owner: kazeburo
-    name: {{ .ProjectName }}
+    name: go-check-memcached-uptime
