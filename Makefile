@@ -1,5 +1,5 @@
 VERSION=0.0.2
-LDFLAGS=-ldflags "-X main.Version=${VERSION}"
+LDFLAGS=-ldflags "-w -s -X main.version=${VERSION}"
 GO111MODULE=on
 
 all: check-memcached-uptime
@@ -15,8 +15,10 @@ linux: check-memcached-uptime.go
 clean:
 	rm -rf check-memcached-uptime
 
+check:
+	go test ./...
+
 tag:
 	git tag v${VERSION}
 	git push origin v${VERSION}
 	git push origin master
-	goreleaser --rm-dist

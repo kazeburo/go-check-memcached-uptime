@@ -7,12 +7,16 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/mackerelio/checkers"
 )
+
+// Version by Makefile
+var version string
 
 type memcachedSetting struct {
 	Host    string  `short:"H" long:"host" default:"localhost" description:"Hostname"`
@@ -22,8 +26,9 @@ type memcachedSetting struct {
 
 type uptimeOpts struct {
 	memcachedSetting
-	Crit int64 `short:"c" long:"critical" description:"critical if uptime seconds is less than this number"`
-	Warn int64 `short:"w" long:"warning" description:"warning if uptime seconds is less than this number"`
+	Crit    int64 `short:"c" long:"critical" description:"critical if uptime seconds is less than this number"`
+	Warn    int64 `short:"w" long:"warning" description:"warning if uptime seconds is less than this number"`
+	Version bool  `short:"v" long:"version" description:"Show version"`
 }
 
 func uptime2str(uptime int64) string {
@@ -89,11 +94,26 @@ func retrieve_uptime(conn net.Conn, timeout float64) (int64, error) {
 	return 0, fmt.Errorf("uptime not found")
 }
 
+func printVersion() {
+	fmt.Printf(`%s %s
+Compiler: %s %s
+`,
+		os.Args[0],
+		version,
+		runtime.Compiler,
+		runtime.Version())
+}
+
 func checkUptime() *checkers.Checker {
 	opts := uptimeOpts{}
-	psr := flags.NewParser(&opts, flags.Default)
+	psr := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err := psr.Parse()
+	if opts.Version {
+		printVersion()
+		os.Exit(0)
+	}
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
